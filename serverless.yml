@@ -1,8 +1,8 @@
-service: aws-sis-employee-api
+service: aws-new-api
 frameworkVersion: '2 || 3'
 
 custom:
-  tableName: 'users-table-${sls:stage}'
+  tableName: 'Employees'
 
 provider:
   name: aws
@@ -20,26 +20,32 @@ provider:
             - dynamodb:UpdateItem
             - dynamodb:DeleteItem
           Resource:
-            - Fn::GetAtt: [ UsersTable, Arn ]
+            - Fn::GetAtt: [ EmployeeTable, Arn ]
   environment:
-    USERS_TABLE: ${self:custom.tableName}
+    TABLENAME: ${self:custom.tableName}
+    NODE_ENV: 'production'
+    REGION: 'ap-south-1'
 
 functions:
-  api:
+  employee-api:
     handler: handler.handler
     events:
       - httpApi: '*'
 
 resources:
   Resources:
-    UsersTable:
+    EmployeeTable:
       Type: AWS::DynamoDB::Table
       Properties:
         AttributeDefinitions:
-          - AttributeName: userId
+          - AttributeName: LocationID
+            AttributeType: S
+          - AttributeName: Empcode
             AttributeType: S
         KeySchema:
-          - AttributeName: userId
+          - AttributeName: LocationID
             KeyType: HASH
+          - AttributeName: Empcode
+            KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:custom.tableName}
